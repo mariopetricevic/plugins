@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"context"
+	"fmt"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/kubernetes/pkg/scheduler/framework"
@@ -27,6 +28,7 @@ func (p *customFilterPlugin) Name() string {
 
 func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
 	// Implementirajte logiku filtriranja čvorova ovdje
+	 fmt.Printf("Filtering pod: %s on node: %s\n", pod.Name, nodeInfo.Node().Name)
 	if nodeInfo.Node().Name == "masternodeee"{
 		return framework.NewStatus(framework.Success)
 	}
