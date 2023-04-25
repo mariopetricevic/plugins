@@ -10,12 +10,17 @@ type customFilterPlugin struct{
 	handle framework.Handle
 }
 
+const (
+	// Name : name of plugin used in the plugin registry and configurations.
+	Name = "customScheduler"
+)
+
 
 //var _ framework.FilterPlugin = &customFilterPlugin{}
 var _  = framework.FilterPlugin(&customFilterPlugin{})
 
 func (p *customFilterPlugin) Name() string {
-	return "CustomFilter"
+	return Name
 }
 
 
@@ -31,4 +36,3 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
 	return &customFilterPlugin{}, nil
 }
-
