@@ -27,7 +27,10 @@ func (p *customFilterPlugin) Name() string {
 
 func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
 	// Implementirajte logiku filtriranja čvorova ovdje
-	return framework.NewStatus(framework.Success)
+	if nodeInfo.Node().Name == "masternode"{
+		return framework.NewStatus(framework.Sucess)
+	}
+	return framework.NewStatus(framework.Unschedulable)
 }
 
 func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
