@@ -10,12 +10,17 @@ type customFilterPlugin struct{
 	handle framework.Handle
 }
 
+const (
+	// Name : name of plugin used in the plugin registry and configurations.
+	Name = "NetworkOverhead"
+)
+
 
 //var _ framework.FilterPlugin = &customFilterPlugin{}
 var _  = framework.FilterPlugin(&customFilterPlugin{})
 
 func (p *customFilterPlugin) Name() string {
-	return "CustomFilter"
+	return Name
 }
 
 
