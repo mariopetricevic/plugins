@@ -25,7 +25,7 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 	return framework.NewStatus(framework.Success)
 }
 
-func New(obj runtime.Object, handle framework.FrameworkHandle) (framework.Plugin, error) {
+func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
 	return &customFilterPlugin{}, nil
 }
 
