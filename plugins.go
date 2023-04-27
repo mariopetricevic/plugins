@@ -25,7 +25,7 @@ func (p *customFilterPlugin) Name() string {
 }
 
 
-func (s *customFilterPlugin) PreFilter(pc *framework.PluginContext, pod *v1.Pod) *framework.Status {
+func (s *customFilterPlugin) PreFilter(ctx context.Context, pod *v1.Pod) *framework.Status {
 	return framework.NewStatus(framework.Success, "")
 }
 
@@ -39,7 +39,7 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 	return framework.NewStatus(framework.Unschedulable, "Node is not masternode")
 }
 
-func (s *customFilterPlugin) PreBind(pc *framework.PluginContext, pod *v1.Pod, nodeName string) *framework.Status {
+func (s *customFilterPlugin) PreBind(ctx context.Context, pod *v1.Pod, nodeName string) *framework.Status {
 
 	return framework.NewStatus(framework.Success, "")
 }
