@@ -37,12 +37,20 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 	//	fmt.Println("labelllll: " +label)
 	//} 
 	
-	podLabel := pod.Labels
+	podLabels := pod.Labels
 
-	if (podLabel == nil){
+	if (podLabels == nil){
 		fmt.Println("ovo je nill")
 	}
 	fmt.Println("nie nill")
+	
+	
+	for _, label := range podLabels{
+		fmt.Println("Printam labelu")
+		fmt.Println(label)
+	} 
+	
+	
 	// Implementirajte logiku filtriranja čvorova ovdje
 	if nodeInfo.Node().Name == "agent1node"{
 		fmt.Println("Inside filter method");
