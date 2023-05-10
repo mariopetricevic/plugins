@@ -31,11 +31,18 @@ func (s *customFilterPlugin) PreFilter(ctx context.Context, pod *v1.Pod) *framew
 
 
 func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
-	
+	fmt.Println("unutraaaaa ")
 	//labels := pod.GetLabels()
 	//for _, label := range labels{
 	//	fmt.Println("labelllll: " +label)
 	//} 
+	
+	podLabel := pod.Labels
+
+	if (podLabel == nil){
+		fmt.Println("ovo je nill")
+	}
+	fmt.Println("nie nill")
 	// Implementirajte logiku filtriranja čvorova ovdje
 	if nodeInfo.Node().Name == "agent1node"{
 		fmt.Println("Inside filter method");
