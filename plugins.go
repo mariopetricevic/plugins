@@ -46,6 +46,8 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 
 	//resursi cvora
 	nodeCpu := nodeInfo.Node().Status.Capacity[v1.ResourceCPU]
+	fmt.Println("node cpu je: ")
+	fmt.Println(nodeCpu)
 	
 	var podCPU resource.Quantity
 
