@@ -57,7 +57,7 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 	fmt.Println()
 
 	fmt.Println("-----------------IZVRŠAVANJE KODA START-----------------")
-	if podLabelValue == "agent2node" {
+	if podLabelValue == "agent2node" && nodeInfo.Node().Name == "agent2node" {
 
 		fmt.Println("---agent2node je true")
 		//ako se radi o cvoru na koji trebamo schedulat, provjeri njegove resurse
