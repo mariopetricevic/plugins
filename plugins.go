@@ -48,6 +48,7 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 	nodeCpu := nodeInfo.Node().Status.Capacity[v1.ResourceCPU]
 	fmt.Println("node cpu je: ")
 	fmt.Println(nodeCpu.String())
+	fmt.Println(nodeCpu)
 	
 	var podCPU resource.Quantity
 
@@ -72,6 +73,8 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 
 			//ako su resursi zadovoljavajuci stavi pod na taj node
 			if(nodeCpu.Cmp(podCPU) > 0){
+				fmt.Println("ovdje da vratim success")
+				fmt.Println(nodeCpu.Cmp(podCPU))
 				return framework.NewStatus(framework.Success)
 			}else{
 				//ako nisu, onda logika za ping i trazi najblizi cvor drugi
