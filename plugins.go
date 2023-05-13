@@ -95,18 +95,29 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 				fmt.Println("---ovo tu je null sta li...")
 				return framework.NewStatus(framework.Error, "Error getting node list")
 			}
-			fmt.Println("---pronaso informacije o nodovima")
+			fmt.Println("---pronaso informacije o nodovima. Ispis nodova:")
+			
+			for _, node := range nodes {
+				fmt.Println(node.Node().Name)
+				fmt.Println(node.Node().Status.Addresses[0].Address)
+			}
+			fmt.Println("gotov ispis nodova")
+			
 			var closestNode *framework.NodeInfo
 			minRTT := time.Duration(math.MaxInt64)
 			for _, node := range nodes {
 				rtt, err := pingNode(node.Node().Status.Addresses[0].Address)
 				if err != nil {
+					fmt.Println("error dohvcanja rtta")
 					continue
 				}
 				if rtt < minRTT {
+					fmt.Println("ispis rtta")
+					fmt.Println(rtt)
 					minRTT = rtt
 					closestNode = node
 				}
+				fmt.Println("proso po svima")
 			}
 			
 			
@@ -126,6 +137,7 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 				fmt.Println("-----INFORMACIJE O NAJBLIZEM ČVORU END---------------")
 				return framework.NewStatus(framework.Success)
 			} else {
+				fmt.Println("nemoguce schedulatt")
 				return framework.NewStatus(framework.Unschedulable, "nije moguce schedulat, trazi drugi cvor")
 			}
 			
