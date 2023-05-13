@@ -32,34 +32,58 @@ func (s *customFilterPlugin) PreFilter(ctx context.Context, pod *v1.Pod) *framew
 
 func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
 	fmt.Println("unutraaaaa ")
-	//labels := pod.GetLabels()
-	//for _, label := range labels{
-	//	fmt.Println("labelllll: " +label)
-	//} 
-	
+		// Implementirajte logiku filtriranja čvorova ovdje
+
+
+
 	podLabels := pod.Labels
 
 	if (podLabels == nil){
 		fmt.Println("ovo je nill")
 	}
 	fmt.Println("nie nill")
+
+	//resursi cvora
+	nodeCpu := nodeInfo.Node().Status.Capacity[v1.ResourceCPU]
 	
+	var podCPU resource.Quantity
+
 	
 	for _, label := range podLabels{
 		fmt.Println("Printam labelu")
 		fmt.Println(label)
 
 		if label == "agent2node"{
-			return framework.NewStatus(framework.Success)
+
+			//ako se radi o cvoru na koji trebamo schedulat, provjeri njegove resurse
+			for _, container := range pod.Spec.Containers{
+				if cpu, ok := container.Resources.Requests[v1.ResourceCPU]; ok{
+					podCPU.Add(cpu)
+					fmt.Println("Printam cpu poda:")
+					fmt.Println(cpu)
+				}
+			}
+
+			//ako su resursi zadovoljavajuci stavi pod na taj node
+			if(nodeCpu.Cmp(podCPU) > 0){
+				return framework.NewStatus(framework.Success)
+			}else{
+				//ako nisu, onda logika za ping i trazi najblizi cvor drugi
+				fmt.Println("nedovoljno resursa, trazim drugi node ....")
+				return framework.NewStatus(framework.Unschedulable, "nije moguce schedulat, trazi drugi cvor")
+			}
+
+			
 		}
 	} 
+
 	
-	
-	// Implementirajte logiku filtriranja čvorova ovdje
-	//if nodeInfo.Node().Name == "agent1node"{
-	//	fmt.Println("Inside filter method");
-	//	return framework.NewStatus(framework.Success)
-	//}
+
+
+	//if nodeInfo.Node().Name == "masternode"{
+//		fmt.Println("Inside filter method");
+//		return framework.NewStatus(framework.Success)
+//	}
 	return framework.NewStatus(framework.Unschedulable, "Node is not masternode")
 }
 
