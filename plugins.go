@@ -58,13 +58,16 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 
 		if label == "agent2node"{
 
+			fmt.Println("radi se o agent2nodu ")
 			//ako se radi o cvoru na koji trebamo schedulat, provjeri njegove resurse
 			for _, container := range pod.Spec.Containers{
+				fmt.Println("u for petlji za resurse: ")
 				if cpu, ok := container.Resources.Requests[v1.ResourceCPU]; ok{
 					podCPU.Add(cpu)
 					fmt.Println("Printam cpu poda:")
 					fmt.Println(cpu)
 				}
+				fmt.Println("nista ")
 			}
 
 			//ako su resursi zadovoljavajuci stavi pod na taj node
