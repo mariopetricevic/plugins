@@ -33,16 +33,12 @@ func (p *customFilterPlugin) Name() string {
 func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
 
 	fmt.Println("------------------FILTER-------------------------------------------")
+
 	fmt.Println("-----------------INFORMACIJE O ČVORU-----------------")
 	//resursi cvora
 	nodeCpu := nodeInfo.Node().Status.Capacity[v1.ResourceCPU]
-	fmt.Println("node cpu je: ")
-	fmt.Println(nodeCpu.String())
-	fmt.Println(nodeCpu)
-	fmt.Println("NODE NAME JE: ")
-	fmt.Println(nodeInfo.Node().Name)
-	fmt.Println("ADRESA JE: ")
-	fmt.Println(nodeInfo.Node().Status.Addresses[0].Address)
+	fmt.Println("---node cpu, cpu, name, adresa: ")
+	fmt.Println("----", nodeCpu.String(), nodeCpu, nodeInfo.Node().Name, nodeInfo.Node().Status.Addresses[0].Address)
 	fmt.Println("-----------------INFORMACIJE O ČVORU END---------------")
 	fmt.Println()
 	fmt.Println()
@@ -50,10 +46,7 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 	fmt.Println("-----------------INFORMACIJE O PODU-----------------")
 	podLabelValue := pod.Labels["scheduleon"]
 	var podCPU resource.Quantity
-
-	fmt.Println("LABELA PODA:")
-	fmt.Println(podLabelValue)
-
+	fmt.Println("---LABELA PODA:", podLabelValue)
 	fmt.Println("-----------------INFORMACIJE O PODU END-----------------")
 	fmt.Println()
 	fmt.Println()
@@ -64,21 +57,22 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 		fmt.Println("------u for petlji za resurse: ")
 		if cpu, ok := container.Resources.Requests[v1.ResourceCPU]; ok {
 			podCPU.Add(cpu)
-			fmt.Println("------Printam cpu poda:")
-			fmt.Println(cpu)
+			fmt.Println("------Printam cpu poda:", cpu)
 		} else {
 			fmt.Println("------nista ")
 		}
 	}
+
 	//smh := false
 	//ako su resursi zadovoljavajuci stavi pod na taj node
 	if nodeCpu.Cmp(podCPU) > 0 { //smh dio koda treba maknuti jer trenutno ne radi ovo s provjerom resursa
-		fmt.Println("---ovdje da vratim success")
-		fmt.Println(nodeCpu.Cmp(podCPU))
+		fmt.Println("---DOVOLJNO RESURSA", nodeCpu.Cmp(podCPU))
+		fmt.Println("------------------FILTER END-------------------------------------------")
 		return framework.NewStatus(framework.Success)
 	} else {
-		fmt.Println("---onedovoljno resursa")
-		return framework.NewStatus(framework.Unschedulable, "nema resursa")
+		fmt.Println("---NEDOVOLJNO RESURSA")
+		fmt.Println("------------------FILTER END-------------------------------------------")
+		return framework.NewStatus(framework.Unschedulable, "NEDOVOLJNO RESURSA")
 	}
 
 	// if podLabelValue == "agent2node" && nodeInfo.Node().Name == "agent2node" {
@@ -194,17 +188,11 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 
 func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeName string) (int64, *framework.Status) {
 
-	fmt.Println("----------SCORE-------------------------------------")
-	//ako nisu, onda logika za ping i trazi najblizi cvor drugi
-	//fmt.Println("---nedovoljno resursa, trazim drugi node ....")
+	fmt.Println("--------------------SCORE-------------------------------------")
+	fmt.Println()
 
 	if p.handle == nil {
 		fmt.Println("---handle je nulll....")
-	}
-
-	nodeLister := p.handle.SnapshotSharedLister().NodeInfos()
-	if nodeLister == nil {
-		fmt.Println("---nodes lister je nullll....")
 	}
 
 	nodes, err := p.handle.SnapshotSharedLister().NodeInfos().List()
@@ -214,46 +202,50 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 	fmt.Println("---pronaso informacije o nodovima. Ispis nodova:")
 
 	for _, node := range nodes {
-		fmt.Println(node.Node().Name)
-		fmt.Println(node.Node().Status.Addresses[0].Address)
+		fmt.Println("---", node.Node().Name)
+		fmt.Println("---", node.Node().Status.Addresses[0].Address)
 	}
-	fmt.Println("gotov ispis nodova")
+	fmt.Println("---gotov ispis nodova")
 
-	fmt.Println("-----------------INFORMACIJE O PODU-----------------")
 	podLabelValue := pod.Labels["scheduleon"]
 
-	fmt.Println("LABELA PODA:")
-	fmt.Println(podLabelValue)
-
-	fmt.Println("-----------------INFORMACIJE O PODU END-----------------")
 	fmt.Println()
 	fmt.Println()
 
 	if nodeName == podLabelValue {
+		fmt.Println("---ispis scorea za node")
+		fmt.Println("---", nodeName)
+		fmt.Println("--------------------SCORE END-------------------------------------")
 		return 100, nil
 	}
 
 	nodeInfo, err := p.handle.SnapshotSharedLister().NodeInfos().Get(nodeName)
 	if err != nil {
+		fmt.Println("error")
+		fmt.Println("--------------------SCORE END-------------------------------------")
 		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("Error getting node %s from Snapshot: %v", nodeName, err))
 	}
 
 	rtt, err := pingNode(nodeInfo.Node().Status.Addresses[0].Address)
-	fmt.Println("ispis rtta")
-	fmt.Println(nodeInfo.Node().Name)
-	fmt.Println(rtt)
+	fmt.Println("---ISPIS RTTA:")
+	fmt.Println("----", nodeInfo.Node().Name)
+	fmt.Println("----", rtt)
+	fmt.Println("---ISPIS RTTA END")
 	if err != nil {
+		fmt.Println("error")
+		fmt.Println("--------------------SCORE END-------------------------------------")
 		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("Error pinging node %s: %v", nodeName, err))
 	}
 
 	// Ovdje bi trebalo pretvoriti vrijeme odziva u ocjenu. Niže vrijeme odziva bi trebalo rezultirati višom ocjenom.
 	// Ovaj primjer samo pretvara vrijeme odziva u milisekunde i oduzima ga od nekog maksimalnog broja (na primjer, 10000)
 	// kako bi niže vrijeme odziva rezultiralo višom ocjenom. Trebali biste prilagoditi ovu logiku prema svojim potrebama.
-	score := 100 - int64(rtt.Milliseconds())
-	fmt.Println("ispis scorea za node")
-	fmt.Println(nodeInfo.Node().Name)
-	fmt.Println(score)
+	score := 95 - int64(rtt.Milliseconds())
+	fmt.Println("---ispis scorea za node:")
+	fmt.Println("----", nodeInfo.Node().Name)
+	fmt.Println("----", score)
 
+	fmt.Println("--------------------SCORE END-------------------------------------")
 	return score, nil
 }
 
@@ -262,6 +254,7 @@ func (p *customFilterPlugin) ScoreExtensions() framework.ScoreExtensions {
 }
 
 func (p *customFilterPlugin) NormalizeScore(_ context.Context, _ *framework.CycleState, pod *v1.Pod, scores framework.NodeScoreList) *framework.Status {
+	fmt.Println("----------NORMALIZE  SCORE -------------------------------------")
 	var (
 		highest int64 = 0
 		lowest        = scores[0].Score
@@ -283,8 +276,10 @@ func (p *customFilterPlugin) NormalizeScore(_ context.Context, _ *framework.Cycl
 	// Set Range to [0-100]
 	for i, nodeScore := range scores {
 		scores[i].Score = (nodeScore.Score - lowest) * framework.MaxNodeScore / (highest - lowest)
-		fmt.Println("Node: %v, Score: %v in Plugin: Yoda When scheduling Pod: %v/%v", scores[i].Name, scores[i].Score, pod.GetNamespace(), pod.GetName())
+		fmt.Println(scores[i].Name, scores[i].Score, pod.GetNamespace(), pod.GetName())
 	}
+
+	fmt.Println("----------NORMALIZE  SCORE END-------------------------------------")
 	return nil
 }
 
