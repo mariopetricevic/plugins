@@ -80,8 +80,19 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 		} else {
 			//ako nisu, onda logika za ping i trazi najblizi cvor drugi
 			fmt.Println("---nedovoljno resursa, trazim drugi node ....")
+			
+			if p.handle == nil {
+				fmt.Println("---handle je nulll....")
+			}
+
+			nodeLister := p.handle.SnapshotSharedLister().NodeInfos()
+			if nodeLister == nil {
+				fmt.Println("---nodes lister je nullll....")
+			}
+
 			nodes, err := p.handle.SnapshotSharedLister().NodeInfos().List()
 			if err != nil {
+				fmt.Println("---ovo tu je null sta li...")
 				return framework.NewStatus(framework.Error, "Error getting node list")
 			}
 			fmt.Println("---pronaso informacije o nodovima")
