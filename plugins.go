@@ -71,8 +71,9 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 			}
 		}
 
+		smh := false
 		//ako su resursi zadovoljavajuci stavi pod na taj node
-		if nodeCpu.Cmp(podCPU) > 0 {
+		if nodeCpu.Cmp(podCPU) > 0 && smh{
 			fmt.Println("---ovdje da vratim success")
 			fmt.Println(nodeCpu.Cmp(podCPU))
 			return framework.NewStatus(framework.Success)
@@ -83,7 +84,7 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 			if err != nil {
 				return framework.NewStatus(framework.Error, "Error getting node list")
 			}
-			
+			fmt.Println("---pronaso informacije o nodovima")
 			var closestNode *framework.NodeInfo
 			minRTT := time.Duration(math.MaxInt64)
 			for _, node := range nodes {
@@ -100,6 +101,18 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 			
 			// Ako je najbliži čvor trenutni čvor, vrati Success
 			if closestNode != nil && closestNode.Node().Name == nodeInfo.Node().Name {
+				fmt.Println("---pronaden najblizi cvor pomocu pinga")
+				fmt.Println("-----INFORMACIJE O NAJBLIZEM ČVORU-----------------")
+				//resursi cvora
+				nodeCpu := closestNode.Node().Status.Capacity[v1.ResourceCPU]
+				fmt.Println("node cpu je: ")
+				fmt.Println(nodeCpu.String())
+				fmt.Println(nodeCpu)
+				fmt.Println("NODE NAME JE: ")
+				fmt.Println(closestNode.Node().Name)
+				fmt.Println("ADRESA JE: ")
+				fmt.Println(closestNode.Node().Status.Addresses[0].Address)
+				fmt.Println("-----INFORMACIJE O NAJBLIZEM ČVORU END---------------")
 				return framework.NewStatus(framework.Success)
 			} else {
 				return framework.NewStatus(framework.Unschedulable, "nije moguce schedulat, trazi drugi cvor")
