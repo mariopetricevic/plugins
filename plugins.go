@@ -107,6 +107,9 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 			minRTT := time.Duration(math.MaxInt64)
 			for _, node := range nodes {
 				rtt, err := pingNode(node.Node().Status.Addresses[0].Address)
+				fmt.Println("ispis rtta")
+				fmt.Println(node.Node().Name)
+				fmt.Println(rtt)
 				if err != nil {
 					fmt.Println("error dohvcanja rtta")
 					continue
@@ -121,8 +124,24 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 			}
 			
 			
+			
+			
+			fmt.Println("-----INFORMACIJE O NAJBLIZEM ČVORU-----------------")
+			//resursi cvora
+			nodeCpu := closestNode.Node().Status.Capacity[v1.ResourceCPU]
+			fmt.Println("node cpu je: ")
+			fmt.Println(nodeCpu.String())
+			fmt.Println(nodeCpu)
+			fmt.Println("NODE NAME JE: ")
+			fmt.Println(closestNode.Node().Name)
+			fmt.Println("ADRESA JE: ")
+			fmt.Println(closestNode.Node().Status.Addresses[0].Address)
+			fmt.Println("-----INFORMACIJE O NAJBLIZEM ČVORU END---------------")
+			
+			
+			//&& closestNode.Node().Name == nodeInfo.Node().Name
 			// Ako je najbliži čvor trenutni čvor, vrati Success
-			if closestNode != nil && closestNode.Node().Name == nodeInfo.Node().Name {
+			if closestNode != nil {
 				fmt.Println("---pronaden najblizi cvor pomocu pinga")
 				fmt.Println("-----INFORMACIJE O NAJBLIZEM ČVORU-----------------")
 				//resursi cvora
