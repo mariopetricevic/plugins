@@ -133,7 +133,7 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 }
 
 func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
-	return &customFilterPlugin{}, nil
+	return &customFilterPlugin{handle: handle}, nil
 }
 
 func pingNode(ip string) (time.Duration, error) {
