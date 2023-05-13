@@ -48,14 +48,18 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 	for _, label := range podLabels{
 		fmt.Println("Printam labelu")
 		fmt.Println(label)
+
+		if label == "agent2node"{
+			return framework.NewStatus(framework.Success)
+		}
 	} 
 	
 	
 	// Implementirajte logiku filtriranja čvorova ovdje
-	if nodeInfo.Node().Name == "agent1node"{
-		fmt.Println("Inside filter method");
-		return framework.NewStatus(framework.Success)
-	}
+	//if nodeInfo.Node().Name == "agent1node"{
+	//	fmt.Println("Inside filter method");
+	//	return framework.NewStatus(framework.Success)
+	//}
 	return framework.NewStatus(framework.Unschedulable, "Node is not masternode")
 }
 
