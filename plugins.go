@@ -43,6 +43,8 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 		fmt.Println("ovo je nill")
 	}
 	fmt.Println("nie nill")
+	
+	podLabelValue := pod.Labels["scheduleon"]
 
 	//resursi cvora
 	nodeCpu := nodeInfo.Node().Status.Capacity[v1.ResourceCPU]
@@ -53,11 +55,11 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 	var podCPU resource.Quantity
 
 	
-	for _, label := range podLabels{
+	//for _, label := range podLabels{
 		fmt.Println("Printam labelu")
-		fmt.Println(label)
+		fmt.Println(podLabelValue)
 
-		if label == "agent2node"{
+		if podLabelValue == "agent2node"{
 
 			fmt.Println("radi se o agent2nodu ")
 			//ako se radi o cvoru na koji trebamo schedulat, provjeri njegove resurse
@@ -84,7 +86,7 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 
 			
 		}
-	} 
+	//} 
 
 	
 
