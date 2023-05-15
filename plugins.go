@@ -238,8 +238,7 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 	}
 
 	// Ovdje bi trebalo pretvoriti vrijeme odziva u ocjenu. Niže vrijeme odziva bi trebalo rezultirati višom ocjenom.
-	// Ovaj primjer samo pretvara vrijeme odziva u milisekunde i oduzima ga od nekog maksimalnog broja (na primjer, 10000)
-	// kako bi niže vrijeme odziva rezultiralo višom ocjenom. Trebali biste prilagoditi ovu logiku prema svojim potrebama.
+	//100 je max score koji se moze dobit, stavili smo 95 pa od njega oduzimamo
 	score := 95 - int64(rtt.Milliseconds())
 	fmt.Println("---ispis scorea za node:")
 	fmt.Println("----", nodeInfo.Node().Name)
