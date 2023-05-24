@@ -36,46 +36,46 @@ func (p *customFilterPlugin) Name() string {
 
 func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
 
-	fmt.Println("------------------FILTER-------------------------------------------")
+	//fmt.Println("------------------FILTER-------------------------------------------")
 
-	fmt.Println("-----------------INFORMACIJE O ČVORU-----------------")
+	//fmt.Println("-----------------INFORMACIJE O ČVORU-----------------")
 	//resursi cvora
 	nodeCpu := nodeInfo.Node().Status.Capacity[v1.ResourceCPU]
-	fmt.Println("---node cpu, cpu, name, adresa: ")
-	fmt.Println("----", nodeCpu.String(), nodeCpu, nodeInfo.Node().Name, nodeInfo.Node().Status.Addresses[0].Address)
-	fmt.Println("-----------------INFORMACIJE O ČVORU END---------------")
-	fmt.Println()
-	fmt.Println()
+	//fmt.Println("---node cpu, cpu, name, adresa: ")
+	//fmt.Println("----", nodeCpu.String(), nodeCpu, nodeInfo.Node().Name, nodeInfo.Node().Status.Addresses[0].Address)
+	//fmt.Println("-----------------INFORMACIJE O ČVORU END---------------")
+	//fmt.Println()
+	//fmt.Println()
 
-	fmt.Println("-----------------INFORMACIJE O PODU-----------------")
-	podLabelValue := pod.Labels["scheduleon"]
+	//fmt.Println("-----------------INFORMACIJE O PODU-----------------")
+	//podLabelValue := pod.Labels["scheduleon"]
 	var podCPU resource.Quantity
-	fmt.Println("---LABELA PODA:", podLabelValue)
-	fmt.Println("-----------------INFORMACIJE O PODU END-----------------")
-	fmt.Println()
-	fmt.Println()
+	//fmt.Println("---LABELA PODA:", podLabelValue)
+	//fmt.Println("-----------------INFORMACIJE O PODU END-----------------")
+	//fmt.Println()
+	//fmt.Println()
 
-	fmt.Println("-----------------IZVRŠAVANJE KODA START-----------------")
+	//fmt.Println("-----------------IZVRŠAVANJE KODA START-----------------")
 
 	for _, container := range pod.Spec.Containers {
-		fmt.Println("------u for petlji za resurse: ")
+		//fmt.Println("------u for petlji za resurse: ")
 		if cpu, ok := container.Resources.Requests[v1.ResourceCPU]; ok {
 			podCPU.Add(cpu)
-			fmt.Println("------Printam cpu poda:", cpu)
+		//	fmt.Println("------Printam cpu poda:", cpu)
 		} else {
-			fmt.Println("------nista ")
+		//	fmt.Println("------nista ")
 		}
 	}
 
 	//smh := false
 	//ako su resursi zadovoljavajuci stavi pod na taj node
 	if nodeCpu.Cmp(podCPU) > 0 { //smh dio koda treba maknuti jer trenutno ne radi ovo s provjerom resursa
-		fmt.Println("---DOVOLJNO RESURSA", nodeCpu.Cmp(podCPU))
-		fmt.Println("------------------FILTER END-------------------------------------------")
+		//fmt.Println("---DOVOLJNO RESURSA", nodeCpu.Cmp(podCPU))
+		//fmt.Println("------------------FILTER END-------------------------------------------")
 		return framework.NewStatus(framework.Success)
 	} else {
-		fmt.Println("---NEDOVOLJNO RESURSA")
-		fmt.Println("------------------FILTER END-------------------------------------------")
+		//fmt.Println("---NEDOVOLJNO RESURSA")
+		//fmt.Println("------------------FILTER END-------------------------------------------")
 		return framework.NewStatus(framework.Unschedulable, "NEDOVOLJNO RESURSA")
 	}
 
@@ -203,18 +203,18 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 	if err != nil {
 		fmt.Println("---ovo tu je null sta li...")
 	}
-	fmt.Println("---pronaso informacije o nodovima. Ispis nodova:")
+	fmt.Println("---------Čvorovi u clusteru:-------------")
 
 	for _, node := range nodes {
-		fmt.Println("---", node.Node().Name)
-		fmt.Println("---", node.Node().Status.Addresses[0].Address)
+		fmt.Println("Ime: %s Adresa: %s", node.Node().Name, node.Node().Status.Addresses[0].Address)
+		//fmt.Println("---", node.Node().Status.Addresses[0].Address)
 
 		// if node.Node().Name == nodeName {
 		// 	//cvor s trenutnim imenom je prosao filtriranje, znaci ima dovoljno resursa, znaci mogli bi ga spremit u varijablu
 		// 	// currentNode
 		// }
 	}
-	fmt.Println("---gotov ispis nodova")
+	fmt.Println("-------end čvorovi u clusteru-------------")
 
 	// podLabelValue := pod.Labels["scheduleon"]
 
@@ -253,6 +253,7 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 
 	var score int
 
+	fmt.Println("-------ispis sortiranih labela-------------")
 	for _, label := range sortedPingValues {
 		fmt.Printf("Label: %s, Value: %d\n", label.Label, label.Value)
 
@@ -264,19 +265,21 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 			//ako je na nekom od podova koji se vrte na trenutnom čvoru applicationName jednak imenu aplikacije poda koji smo predali kao parametar, preskacemo taj čvor
 			//ako već postoji aplikacija koju se želi schedulat na trenutnom čvoru preskoči
 			if applicationName, found := labels["app"]; found && applicationName == pod.Labels["app"] {
+				fmt.Println("Ova aplikacija %s vec postoji na cvoru %s", pod.Labels["app"], nodeName)
 				continue
 
 			} else {
 
 				fmt.Println("Found closest node: %s", label.Label)
 				//return 99, nil // postavi score ovdje negdje!!! i onda ga vrati
-				score = 100 - label.Value
+				score = 95 - label.Value
 				break
 			}
 
 		}
 
 	}
+	fmt.Println("-------end ispisa sortiranih labela-------------")
 
 	// pods, err := currentNode.Pods
 
@@ -367,15 +370,15 @@ func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) 
 	return &customFilterPlugin{handle: handle}, nil
 }
 
-func pingNode(ip string) (time.Duration, error) {
-	pinger, err := ping.NewPinger(ip)
-	if err != nil {
-		return 0, err
-	}
-	pinger.Count = 3
-	pinger.Timeout = time.Second * 5
-	pinger.SetPrivileged(true)
-	pinger.Run()
-	stats := pinger.Statistics()
-	return stats.AvgRtt, nil
-}
+//func pingNode(ip string) (time.Duration, error) {
+//	pinger, err := ping.NewPinger(ip)
+//	if err != nil {
+//		return 0, err
+//	}
+//	pinger.Count = 3
+//	pinger.Timeout = time.Second * 5
+//	pinger.SetPrivileged(true)
+//	pinger.Run()
+//	stats := pinger.Statistics()
+//	return stats.AvgRtt, nil
+//}
