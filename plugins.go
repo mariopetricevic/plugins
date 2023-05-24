@@ -3,7 +3,11 @@ package plugins
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
+
+	"strconv"
 
 	"github.com/go-ping/ping"
 	v1 "k8s.io/api/core/v1"
@@ -204,48 +208,125 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 	for _, node := range nodes {
 		fmt.Println("---", node.Node().Name)
 		fmt.Println("---", node.Node().Status.Addresses[0].Address)
+
+		// if node.Node().Name == nodeName {
+		// 	//cvor s trenutnim imenom je prosao filtriranje, znaci ima dovoljno resursa, znaci mogli bi ga spremit u varijablu
+		// 	// currentNode
+		// }
 	}
 	fmt.Println("---gotov ispis nodova")
 
-	podLabelValue := pod.Labels["scheduleon"]
+	// podLabelValue := pod.Labels["scheduleon"]
 
-	fmt.Println()
-	fmt.Println()
+	//dohvati cvor s imenom nodeName
+	currentNode, err := p.handle.SnapshotSharedLister().NodeInfos().Get(nodeName)
+	currentNodeLabels := currentNode.Node().GetLabels()
 
-	if nodeName == podLabelValue {
-		fmt.Println("---ispis scorea za node")
-		fmt.Println("---", nodeName)
-		fmt.Println("--------------------SCORE END-------------------------------------")
-		return 100, nil
+	pingLabels := make(map[string]int)
+
+	// prodi po svim labelama cvora i dohvati labele za udaljenosti izmedu cvorova
+	for label, value := range currentNodeLabels {
+		if strings.HasPrefix(label, "ping-") {
+
+			intValue, err := strconv.Atoi(value)
+			if err != nil {
+				fmt.Println("failed to convert value '%s' to integer for label '%s' \n", value, label)
+			}
+
+			pureLabel, found := strings.CutPrefix(label, "ping-")
+			if found {
+				pingLabels[pureLabel] = intValue
+			}
+		}
 	}
 
-	nodeInfo, err := p.handle.SnapshotSharedLister().NodeInfos().Get(nodeName)
-	if err != nil {
-		fmt.Println("error")
-		fmt.Println("--------------------SCORE END-------------------------------------")
-		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("Error getting node %s from Snapshot: %v", nodeName, err))
+	//spremi u strukturu sve labele i njihove udaljenosti
+	var sortedPingValues []LabelPing
+	for label, value := range pingLabels {
+		sortedPingValues = append(sortedPingValues, LabelPing{label, value})
 	}
 
-	rtt, err := pingNode(nodeInfo.Node().Status.Addresses[0].Address)
-	fmt.Println("---ISPIS RTTA:")
-	fmt.Println("----", nodeInfo.Node().Name)
-	fmt.Println("----", rtt)
-	fmt.Println("---ISPIS RTTA END")
-	if err != nil {
-		fmt.Println("error")
-		fmt.Println("--------------------SCORE END-------------------------------------")
-		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("Error pinging node %s: %v", nodeName, err))
+	//sortiraj od najmanjeg do najveceg
+	sort.Slice(sortedPingValues, func(i, j int) bool {
+		return sortedPingValues[i].Value < sortedPingValues[j].Value
+	})
+
+	var score int
+
+	for _, label := range sortedPingValues {
+		fmt.Printf("Label: %s, Value: %d\n", label.Label, label.Value)
+
+		pods := currentNode.Pods
+
+		for _, p := range pods {
+			labels := p.Pod.GetLabels()
+
+			//ako je na nekom od podova koji se vrte na trenutnom čvoru applicationName jednak imenu aplikacije poda koji smo predali kao parametar, preskacemo taj čvor
+			//ako već postoji aplikacija koju se želi schedulat na trenutnom čvoru preskoči
+			if applicationName, found := labels["app"]; found && applicationName == pod.Labels["app"] {
+				continue
+
+			} else {
+
+				fmt.Println("Found closest node: %s", label.Label)
+				//return 99, nil // postavi score ovdje negdje!!! i onda ga vrati
+				score = 100 - label.Value
+				break
+			}
+
+		}
+
 	}
 
-	// Ovdje bi trebalo pretvoriti vrijeme odziva u ocjenu. Niže vrijeme odziva bi trebalo rezultirati višom ocjenom.
-	//100 je max score koji se moze dobit, stavili smo 95 pa od njega oduzimamo
-	score := 95 - int64(rtt.Milliseconds())
-	fmt.Println("---ispis scorea za node:")
-	fmt.Println("----", nodeInfo.Node().Name)
-	fmt.Println("----", score)
+	// pods, err := currentNode.Pods
+
+	// for _, pod := range pods {
+	// 	labels := pod
+
+	// }
+
+	// fmt.Println()
+	// fmt.Println()
+
+	// if nodeName == podLabelValue {
+	// 	fmt.Println("---ispis scorea za node")
+	// 	fmt.Println("---", nodeName)
+	// 	fmt.Println("--------------------SCORE END-------------------------------------")
+	// 	return 100, nil
+	// }
+
+	// nodeInfo, err := p.handle.SnapshotSharedLister().NodeInfos().Get(nodeName)
+	// if err != nil {
+	// 	fmt.Println("error")
+	// 	fmt.Println("--------------------SCORE END-------------------------------------")
+	// 	return 0, framework.NewStatus(framework.Error, fmt.Sprintf("Error getting node %s from Snapshot: %v", nodeName, err))
+	// }
+
+	// // rtt, err := pingNode(nodeInfo.Node().Status.Addresses[0].Address)
+	// // fmt.Println("---ISPIS RTTA:")
+	// // fmt.Println("----", nodeInfo.Node().Name)
+	// // fmt.Println("----", rtt)
+	// // fmt.Println("---ISPIS RTTA END")
+	// // if err != nil {
+	// // 	fmt.Println("error")
+	// // 	fmt.Println("--------------------SCORE END-------------------------------------")
+	// // 	return 0, framework.NewStatus(framework.Error, fmt.Sprintf("Error pinging node %s: %v", nodeName, err))
+	// }
+
+	// // Ovdje bi trebalo pretvoriti vrijeme odziva u ocjenu. Niže vrijeme odziva bi trebalo rezultirati višom ocjenom.
+	// //100 je max score koji se moze dobit, stavili smo 95 pa od njega oduzimamo
+	// score := 95 - int64(rtt.Milliseconds())
+	// fmt.Println("---ispis scorea za node:")
+	// fmt.Println("----", nodeInfo.Node().Name)
+	// fmt.Println("----", score)
 
 	fmt.Println("--------------------SCORE END-------------------------------------")
-	return score, nil
+	return int64(score), nil
+}
+
+type LabelPing struct {
+	Label string
+	Value int
 }
 
 func (p *customFilterPlugin) ScoreExtensions() framework.ScoreExtensions {
