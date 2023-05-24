@@ -233,10 +233,10 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 				fmt.Println("failed to convert value '%s' to integer for label '%s' \n", value, label)
 			}
 
-			pureLabel, found := strings.CutPrefix(label, "ping-")
-			if found {
+			pureLabel := strings.TrimPrefix(label, "ping-")  //CutPrefix(label, "ping-")
+			//if found {
 				pingLabels[pureLabel] = intValue
-			}
+			//}
 		}
 	}
 
