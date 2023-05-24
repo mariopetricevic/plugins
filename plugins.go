@@ -261,6 +261,7 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 
 		pods := currentNode.Pods
 
+		var postoji bool = false
 		for _, p := range pods {
 			labels := p.Pod.GetLabels()
 
@@ -268,17 +269,26 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 			//ako već postoji aplikacija koju se želi schedulat na trenutnom čvoru preskoči
 			if applicationName, found := labels["app"]; found && applicationName == pod.Labels["app"] {
 				fmt.Println("Ova aplikacija %s vec postoji na cvoru %s", pod.Labels["app"], nodeName)
-				continue
-
-			} else {
-
-				fmt.Println("Found closest node: %s", label.Label)
-				//return 99, nil // postavi score ovdje negdje!!! i onda ga vrati
-				score = 95 - label.Value
+				//continue
+				postoji = true
 				break
-			}
+
+			}// else {
+
+			//	fmt.Println("Found closest node: %s", label.Label)
+			//	//return 99, nil // postavi score ovdje negdje!!! i onda ga vrati
+			//	score = 95 - label.Value
+			//	break
+			//}
 
 		}
+		if postoji == false{
+			fmt.Println("Found closest node: %s", label.Label)
+			//return 99, nil // postavi score ovdje negdje!!! i onda ga vrati
+			score = 90 - label.Value
+			break
+		}
+		
 
 	}
 	fmt.Println("-------end ispisa sortiranih labela-------------")
