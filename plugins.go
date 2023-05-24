@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"strconv"
 
-	"github.com/go-ping/ping"
+//	"github.com/go-ping/ping"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
