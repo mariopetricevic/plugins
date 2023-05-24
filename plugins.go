@@ -214,6 +214,9 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 		// }
 	}
 	fmt.Println("-------end čvorovi u clusteru-------------")
+	
+	fmt.Println("----------trenutni čvor je: '%s'-------------", nodeName)
+	
 
 	// podLabelValue := pod.Labels["scheduleon"]
 
