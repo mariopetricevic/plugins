@@ -249,15 +249,10 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 			fmt.Println("printam labelu: ", label)
 			intValue, err := strconv.Atoi(value)
 			fmt.Println("printam vrijednost labele: ", intValue)
-			if err != nil {
-				fmt.Println("failed to convert value '%s' to integer for label '%s' \n", value, label)
-			}
 
 			pureLabel := strings.TrimPrefix(label, "ping-")  //CutPrefix(label, "ping-")
-			fmt.Println("printam sredenu labelu: ", label)
-			//if found {
+			fmt.Println("printam sredenu labelu: ", pureLabel)
 			pingLabels[pureLabel] = intValue
-			//}
 		}
 	}
 	fmt.Println("printam labele i value pinga.")
