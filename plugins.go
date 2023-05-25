@@ -287,7 +287,7 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 				fmt.Println("scoring node: %s, score: %d", pingValuesForLabel.Label, pingValuesForLabel.Value)
 			}
 		}else{
-		return 0, ramework.NewStatus(framework.Error, fmt.Sprintf("Pod vec postoji na cvoru %s: %v", nodeName, err))
+		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("Pod vec postoji na cvoru %s: %v", nodeName, err))
 		}
 	}
 	fmt.Println("-------end ispisa sortiranih labela-------------")
