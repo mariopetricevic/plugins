@@ -245,15 +245,17 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 	// prodi po svim labelama cvora i dohvati labele za udaljenosti izmedu cvorova
 	for label, value := range currentNodeLabels {
 		if strings.HasPrefix(label, "ping-") {
-
+			fmt.Println("printam labelu: ", label)
 			intValue, err := strconv.Atoi(value)
+			fmt.Println("printam vrijednost labele: ", intValue)
 			if err != nil {
 				fmt.Println("failed to convert value '%s' to integer for label '%s' \n", value, label)
 			}
 
 			pureLabel := strings.TrimPrefix(label, "ping-")  //CutPrefix(label, "ping-")
+			fmt.Println("printam sredenu labelu: ", label)
 			//if found {
-				pingLabels[pureLabel] = intValue
+			pingLabels[pureLabel] = intValue
 			//}
 		}
 	}
