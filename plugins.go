@@ -247,7 +247,7 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 	for label, value := range currentNodeLabels {
 		if strings.HasPrefix(label, "ping-") {
 			fmt.Println("printam labelu: ", label)
-			intValue, err := strconv.Atoi(value)
+			intValue := strconv.Atoi(value)
 			fmt.Println("printam vrijednost labele: ", intValue)
 
 			pureLabel := strings.TrimPrefix(label, "ping-")  //CutPrefix(label, "ping-")
