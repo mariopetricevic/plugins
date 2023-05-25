@@ -257,6 +257,11 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 			//}
 		}
 	}
+	fmt.Println("printam labele i value pinga.)
+	for key, value := range pingLabels{
+		fmt.Println(key, " val: ", value)
+	}
+
 
 	//spremi u strukturu sve labele i njihove udaljenosti
 	var sortedPingValues []LabelPing
