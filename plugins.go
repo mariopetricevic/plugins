@@ -238,7 +238,7 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 
 	//dohvati cvor od kojega je stigao zahtjev
 	currentNode, err := p.handle.SnapshotSharedLister().NodeInfos().Get(requestFromNode)
-	currentNodeLabels := currentNode.Node().GetLabels()
+	currentNodeLabels := currentNode.Node().Labels
 
 	pingLabels := make(map[string]int)
 
