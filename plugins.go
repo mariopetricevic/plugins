@@ -237,8 +237,9 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 	// podLabelValue := pod.Labels["scheduleon"]
 
 	//dohvati cvor od kojega je stigao zahtjev
-	currentNode, err := p.handle.SnapshotSharedLister().NodeInfos().Get(requestFromNode)
-	currentNodeLabels := currentNode.Node().Labels
+	currentNodeInfo, err := p.handle.SnapshotSharedLister().NodeInfos().Get(requestFromNode)
+	currentNode := currentNodeInfo.Node()
+	currentNodeLabels := currentNode.GetLabels()
 
 	pingLabels := make(map[string]int)
 
