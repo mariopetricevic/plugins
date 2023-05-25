@@ -255,41 +255,40 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 
 	var score int
 
-	fmt.Println("-------ispis sortiranih labela-------------")
-	for _, label := range sortedPingValues {
-		fmt.Printf("Label: %s, Value: %d\n", label.Label, label.Value)
+	
+	pods := currentNode.Pods
+	var postoji bool = false
+	for _, p := range pods {
+		labels := p.Pod.GetLabels()
 
-		pods := currentNode.Pods
-
-		var postoji bool = false
-		for _, p := range pods {
-			labels := p.Pod.GetLabels()
-
-			//ako je na nekom od podova koji se vrte na trenutnom čvoru applicationName jednak imenu aplikacije poda koji smo predali kao parametar, preskacemo taj čvor
-			//ako već postoji aplikacija koju se želi schedulat na trenutnom čvoru preskoči
-			if applicationName, found := labels["app"]; found && applicationName == pod.Labels["app"] {
-				fmt.Println("Ova aplikacija %s vec postoji na cvoru %s", pod.Labels["app"], nodeName)
-				//continue
-				postoji = true
-				break
-
-			}// else {
-
-			//	fmt.Println("Found closest node: %s", label.Label)
-			//	//return 99, nil // postavi score ovdje negdje!!! i onda ga vrati
-			//	score = 95 - label.Value
-			//	break
-			//}
-
-		}
-		if postoji == false{
-			fmt.Println("Found closest node: %s", label.Label)
-			//return 99, nil // postavi score ovdje negdje!!! i onda ga vrati
-			score = 90 - label.Value
+		//ako je na nekom od podova koji se vrte na trenutnom čvoru applicationName jednak imenu aplikacije poda koji smo predali kao parametar, preskacemo taj čvor
+		//ako već postoji aplikacija koju se želi schedulat na trenutnom čvoru preskoči
+		if applicationName, found := labels["app"]; found && applicationName == pod.Labels["app"] {
+			fmt.Println("Ova aplikacija %s vec postoji na cvoru %s", pod.Labels["app"], nodeName)
+			//continue
+			postoji = true
 			break
 		}
-		
+	}
+	
+	fmt.Println("-------ispis sortiranih labela-------------")
+	for _, pingValuesForLabel := range sortedPingValues {
+		fmt.Printf("Label: %s, Value: %d\n", pingValuesForLabel.Label, pingValuesForLabel.Value)
 
+		if postoji == false{
+			if pingValuesForLabel.Label == currentNode.Node().GetName(){
+			fmt.Println("Najblizi cvor je trenutni cvor: %s, trenutni cvor: %s", pingValuesForLabel.Label, nodeName)
+			score = 100
+			break
+			}else{
+				fmt.Println("scoring node: %s", pingValuesForLabel.Label)
+				//return 99, nil // postavi score ovdje negdje!!! i onda ga vrati
+				score = 90 - pingValuesForLabel.Value
+				fmt.Println("scoring node: %s, score: %d", pingValuesForLabel.Label, pingValuesForLabel.Value)
+			}
+		}else{
+		return 0, ramework.NewStatus(framework.Error, fmt.Sprintf("Pod vec postoji na cvoru %s: %v", nodeName, err))
+		}
 	}
 	fmt.Println("-------end ispisa sortiranih labela-------------")
 
