@@ -67,9 +67,23 @@ func (p *customFilterPlugin) Filter(ctx context.Context, state *framework.CycleS
 	}
 
 	//smh := false
-	//ako su resursi zadovoljavajuci stavi pod na taj node
+	//ako su resursi zadovoljavajuci moze dalje
 	if nodeCpu.Cmp(podCPU) > 0 { //smh dio koda treba maknuti jer trenutno ne radi ovo s provjerom resursa
 		//fmt.Println("---DOVOLJNO RESURSA", nodeCpu.Cmp(podCPU))
+		
+		// provjeri ima li na cvoru pod na kojem se vec vrti aplikacija koja se zeli postavit
+		pods := nodeInfo.Pods
+		for _, p := range pods {
+			labels := p.Pod.GetLabels()
+
+			//ako je na nekom od podova koji se vrte na trenutnom čvoru applicationName jednak imenu aplikacije poda koji smo predali kao parametar, preskacemo taj čvor
+			//ako već postoji aplikacija koju se želi schedulat na trenutnom čvoru preskoči
+			if applicationName, found := labels["app"]; found && applicationName == pod.Labels["app"] {
+				fmt.Println("Ova aplikacija %s vec postoji na cvoru %s", pod.Labels["app"], nodeInfo.Node().Name)
+				//continue
+				return framework.NewStatus(framework.Unschedulable, "aplikacija postoji na ovom cvoru")
+			}
+		}
 		//fmt.Println("------------------FILTER END-------------------------------------------")
 		return framework.NewStatus(framework.Success)
 	} else {
@@ -197,6 +211,8 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 	if p.handle == nil {
 		fmt.Println("---handle je nulll....")
 	}
+	
+	requestFromNode := pod.Labels["scheduleon"]
 
 	nodes, err := p.handle.SnapshotSharedLister().NodeInfos().List()
 	if err != nil {
@@ -220,8 +236,8 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 
 	// podLabelValue := pod.Labels["scheduleon"]
 
-	//dohvati cvor s imenom nodeName
-	currentNode, err := p.handle.SnapshotSharedLister().NodeInfos().Get(nodeName)
+	//dohvati cvor od kojega je stigao zahtjev
+	currentNode, err := p.handle.SnapshotSharedLister().NodeInfos().Get(requestFromNode)
 	currentNodeLabels := currentNode.Node().GetLabels()
 
 	pingLabels := make(map[string]int)
@@ -253,43 +269,35 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 		return sortedPingValues[i].Value < sortedPingValues[j].Value
 	})
 
-	var score int
-
-	
-	pods := currentNode.Pods
-	var postoji bool = false
-	for _, p := range pods {
-		labels := p.Pod.GetLabels()
-
-		//ako je na nekom od podova koji se vrte na trenutnom čvoru applicationName jednak imenu aplikacije poda koji smo predali kao parametar, preskacemo taj čvor
-		//ako već postoji aplikacija koju se želi schedulat na trenutnom čvoru preskoči
-		if applicationName, found := labels["app"]; found && applicationName == pod.Labels["app"] {
-			fmt.Println("Ova aplikacija %s vec postoji na cvoru %s", pod.Labels["app"], nodeName)
-			//continue
-			postoji = true
-			break
-		}
-	}
-	
 	fmt.Println("-------ispis sortiranih labela-------------")
 	for _, pingValuesForLabel := range sortedPingValues {
 		fmt.Printf("Label: %s, Value: %d\n", pingValuesForLabel.Label, pingValuesForLabel.Value)
-
-		if postoji == false{
-			if pingValuesForLabel.Label == currentNode.Node().GetName(){
-			fmt.Println("Najblizi cvor je trenutni cvor: %s, trenutni cvor: %s", pingValuesForLabel.Label, nodeName)
-			score = 100
-			break
-			}else{
-				//return 99, nil // postavi score ovdje negdje!!! i onda ga vrati
-				score = 90 - pingValuesForLabel.Value
-				fmt.Println("scoring node: %s, score: %d", pingValuesForLabel.Label, score)
-			}
-		}else{
-		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("Pod vec postoji na cvoru %s: %v", nodeName, err))
-		}
 	}
 	fmt.Println("-------end ispisa sortiranih labela-------------")
+
+
+	var score int = 0
+
+	if requestFromNode == nodeName{
+		score = 100
+		return 100, nil
+	}else{
+		for _, pingValuesForLabel := range sortedPingValues {
+			//fmt.Printf("Label: %s, Value: %d\n", pingValuesForLabel.Label, pingValuesForLabel.Value)
+	
+			if pingValuesForLabel.Label == nodeName{
+				fmt.Println("scoring node: %s, score: %d", pingValuesForLabel.Label, score)
+			score = 90 - pingValuesForLabel.Value
+			break
+			}
+		}
+	}
+	
+	
+
+	
+	
+
 
 	// pods, err := currentNode.Pods
 
