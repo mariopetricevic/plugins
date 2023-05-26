@@ -246,18 +246,14 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 	// prodi po svim labelama cvora i dohvati labele za udaljenosti izmedu cvorova
 	for label, value := range currentNodeLabels {
 		if strings.HasPrefix(label, "ping-") {
-			fmt.Println("printam labelu: ", label)
 			intValue, err := strconv.Atoi(value)
 			if err != nil {
 				fmt.Println("greska")
 			}
-			fmt.Println("printam vrijednost labele: ", intValue)
 
 			pureLabel := strings.TrimPrefix(label, "ping-")  //CutPrefix(label, "ping-")
-			fmt.Println("printam sredenu labelu: ", pureLabel)
 			pingLabels[pureLabel] = intValue
 		}else{
-		fmt.Println("nema prefiksa: ", label)
 		}
 	}
 	fmt.Println("printam labele i value pinga.")
@@ -294,8 +290,9 @@ func (p *customFilterPlugin) Score(ctx context.Context, state *framework.CycleSt
 			//fmt.Printf("Label: %s, Value: %d\n", pingValuesForLabel.Label, pingValuesForLabel.Value)
 	
 			if pingValuesForLabel.Label == nodeName{
-				fmt.Println("scoring node: %s, score: %d", pingValuesForLabel.Label, score)
+				
 			score = 90 - pingValuesForLabel.Value
+				fmt.Println("scoring node: %s, score: %d", pingValuesForLabel.Label, score)
 			break
 			}
 		}
