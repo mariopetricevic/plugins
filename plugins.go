@@ -87,7 +87,9 @@ func (p *MyK3SPlugin) Score(ctx context.Context, state *framework.CycleState, po
 	}
 
 	//deployments need to have label requestFrom which indicates on which node request for pod has came
-	requestFromNode := pod.Labels["requestFrom"] //scheduleon
+	requestFromNode := pod.Labels["requestFrom"]
+	fmt.Println("Request for application: ", pod.Labels["applicationName"], " came from node: ", requestFromNode)
+	
 
 	nodes, err := p.handle.SnapshotSharedLister().NodeInfos().List()
 	if err != nil {
