@@ -35,29 +35,47 @@ func (p *MyK3SPlugin) Name() string {
 }
 
 func (p *MyK3SPlugin) Filter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
-	//
 	// Filter nodes that can run the pod. If node cannot run the pod
 	// method returns framework status Unschedulable.
 	// Additionaly, method filters nodes that already have pod running
 	// with the same application name.
 	//
 	fmt.Println("filter pod:", pod.Name, ", application name: ", pod.Labels["applicationName"], ", Node: ", nodeInfo.Node().Name)
-	fmt.Println("Node resources: CPU:", nodeInfo.Node().Status.Allocatable.Cpu(), ", memory: ", nodeInfo.Node().Status.Allocatable.Memory())
 
-	//availableResources := nodeInfo.Node().Status.Allocatable
-	nodeCpu := nodeInfo.Node().Status.Allocatable.Cpu()
+	// Total node resources
+	totalNodeCPU := nodeInfo.Node().Status.Capacity[v1.ResourceCPU]
+	totalNodeMemory := nodeInfo.Node().Status.Capacity[v1.ResourceMemory]
 
-	//calculate allocated CPU for running all containters in current pod
+	// Resources consumed by pods
+	requestedCPU := resource.Quantity{}
+	requestedMemory := resource.Quantity{}
+
+	for _, p := range nodeInfo.Pods {
+		requests := p.Pod.Spec.Containers[0].Resources.Requests
+		requestedCPU.Add(requests[v1.ResourceCPU])
+		requestedMemory.Add(requests[v1.ResourceMemory])
+	}
+
+	// Available resources
+	availableCPU := totalNodeCPU.DeepCopy()
+	availableCPU.Sub(requestedCPU)
+
+	availableMemory := totalNodeMemory.DeepCopy()
+	availableMemory.Sub(requestedMemory)
+
+	fmt.Printf("Available resources on node %s: CPU: %s, Memory: %s\n",
+		nodeInfo.Node().Name, availableCPU.String(), availableMemory.String())
+
+	//calculate allocated CPU for running all containers in current pod
 	var podCPU resource.Quantity
 	for _, container := range pod.Spec.Containers {
 		if cpu, ok := container.Resources.Requests[v1.ResourceCPU]; ok {
 			podCPU.Add(cpu)
 		}
 	}
-	fmt.Println("Application:", pod.Labels["applicationName"], "takes CPU: ", podCPU)
 
-	//If requred resources for running pod are less than available resources on a node
-	if nodeCpu.Cmp(podCPU) > 0 {
+	//If required resources for running pod are less than available resources on a node
+	if availableCPU.Cmp(podCPU) > 0 {
 
 		// Check if node already runs application with the same name
 		pods := nodeInfo.Pods
@@ -74,7 +92,6 @@ func (p *MyK3SPlugin) Filter(ctx context.Context, state *framework.CycleState, p
 		}
 		return framework.NewStatus(framework.Success)
 	} else {
-		fmt.Println("Application:", pod.Labels["applicationName"], "Not enough resources to run application, ", nodeInfo.Node().Name)
 		return framework.NewStatus(framework.Unschedulable, "Not enough resources to run application: ", pod.Labels["applicationName"])
 	}
 }
