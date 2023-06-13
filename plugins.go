@@ -45,7 +45,7 @@ func (p *MyK3SPlugin) Filter(ctx context.Context, state *framework.CycleState, p
 	fmt.Println("Node resources: CPU:", nodeInfo.Node().Status.Allocatable.Cpu(), ", memory: ", nodeInfo.Node().Status.Allocatable.Memory())
 
 	//availableResources := nodeInfo.Node().Status.Allocatable
-	nodeCpu := nodeInfo.Node().Status.Capacity[v1.ResourceCPU]
+	nodeCpu := nodeInfo.Node().Status.Allocatable.Cpu()
 
 	//calculate allocated CPU for running all containters in current pod
 	var podCPU resource.Quantity
@@ -54,6 +54,7 @@ func (p *MyK3SPlugin) Filter(ctx context.Context, state *framework.CycleState, p
 			podCPU.Add(cpu)
 		}
 	}
+	fmt.Println("Application:", pod.Labels["applicationName"], "takes CPU: ", podCPU)
 
 	//If requred resources for running pod are less than available resources on a node
 	if nodeCpu.Cmp(podCPU) > 0 {
@@ -73,6 +74,7 @@ func (p *MyK3SPlugin) Filter(ctx context.Context, state *framework.CycleState, p
 		}
 		return framework.NewStatus(framework.Success)
 	} else {
+		fmt.Println("Application:", pod.Labels["applicationName"], "Not enough resources to run application, ", nodeInfo.Node().Name)
 		return framework.NewStatus(framework.Unschedulable, "Not enough resources to run application: ", pod.Labels["applicationName"])
 	}
 }
